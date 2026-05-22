@@ -1,0 +1,1 @@
+ <span class="ark-promotion-badge" style="background-color:{$badge_bg_color}; color: {$badge_text_color};"> {$badge_text} </span>

@@ -1,0 +1,21 @@
+{
+  "name": "ark-related-posts-webpack",
+  "version": "1.0.0",
+  "description": "Module Prestashop with Sass via Webpack",
+  "main": "ark-related-posts.php",
+  "scripts": {
+    "build": "webpack --mode production",
+    "watch": "webpack --watch --mode development"
+  },
+  "author": "Gabriel Del Fiaco",
+  "devDependencies": {
+    "css-loader": "^7.1.0",
+    "css-minimizer-webpack-plugin": "^8.0.0",
+    "mini-css-extract-plugin": "^2.9.0",
+    "sass": "^1.77.0",
+    "sass-loader": "^14.2.0",
+    "webpack": "^5.91.0",
+    "webpack-cli": "^5.1.0",
+    "webpack-remove-empty-scripts": "^1.0.4"
+  }
+}

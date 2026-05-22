@@ -1,0 +1,30 @@
+/*!**************************************************************************************************************!*\
+  !*** css ./node_modules/css-loader/dist/cjs.js!./node_modules/sass-loader/dist/cjs.js!./_dev/ark-style.scss ***!
+  \**************************************************************************************************************/
+@keyframes pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  70% {
+    transform: scale(1.1);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+.ark-promotion-badge {
+  width: 100%;
+  display: inline-block;
+  text-align: center;
+  padding: 5px 0;
+  animation: pop 0.6s ease-out both;
+  animation-iteration-count: 1;
+}
+
+.product-price-and-shipping .ark-promotion-badge {
+  position: absolute;
+  top: -30px;
+  left: 0px;
+}
