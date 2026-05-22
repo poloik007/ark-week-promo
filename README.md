@@ -20,9 +20,10 @@ Back Office → Modules → Arkon Week Promo → Configure
 - Choose text and background colors
 
 ## Development (Webpack + SCSS)
-npm install
-npm run build    # production build
-npm run watch    # development watch mode
+
+- npm install
+- npm run build    # production build
+- npm run watch    # development watch mode
 
 ## How it works
 Hooks into `displayProductPriceBlock` (before old_price position).
