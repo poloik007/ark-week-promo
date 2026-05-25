@@ -18,108 +18,126 @@ class AdminConfig{
     public function getContent(){
         $output = '';
 
-        // this part is executed only when the form is submitted
-        if (Tools::isSubmit('submit' . $this->name)) {
+        if (Tools::isSubmit('submit' . $this->module->name)) {
 
-            $output = $this->displayForm();            
+            $output = $this->postValidation();           
         }
 
-        // display any message, then the form
         return $output . $this->displayForm();
     }
 
     public function postValidation(){
-        $ark_text     = (string) Tools::getValue('ARKWEEKPROMO_TEXT');
-        $ark_bgColor  = (string) Tools::getValue('ARKWEEKPROMO_BG_COLOR');
-        $ark_txtColor = (string) Tools::getValue('ARKWEEKPROMO_TEXT_COLOR');
-        $ark_enabled  = (int) Tools::getValue('ARKWEEKPROMO_ENABLED');
+         $output = '';
 
-        $errors = [];
+        if (Tools::isSubmit('submit' . $this->module->name)) {
 
-        if (empty($ark_text) || !Validate::isGenericName($ark_text)) {
-            $errors[] = $this->l('Badge text is invalid or empty.');
+            // retrieve the value set by the user           
+            $ark_bgColor  = (string) Tools::getValue('ARKWEEKPROMO_BG_COLOR');
+            $ark_txtColor = (string) Tools::getValue('ARKWEEKPROMO_TEXT_COLOR');
+            $ark_enabled  = (int) Tools::getValue('ARKWEEKPROMO_ENABLED');
+
+            $errors = [];
+        
+            $languages = Language::getLanguages(true);
+
+            foreach ($languages as $lang) {
+                $ark_text = (string) Tools::getValue('ARKWEEKPROMO_TEXT_' . $lang['id_lang']);
+
+                if (empty($ark_text) || !Validate::isGenericName($ark_text)) {
+                    $errors[] = $this->module->l('Badge text is invalid for') . ' ' . $lang['name'];
+                    continue;
+                }
+
+                Configuration::updateValue('ARKWEEKPROMO_TEXT_' . $lang['id_lang'], $ark_text);
+            }
+
+            // Validate hex colors -- got from an example online
+            if (!Validate::isColor($ark_bgColor)) {
+                $errors[] = $this->module->l('Background color must be a valid hex color (e.g. #e74c3c).');
+            }
+
+            if (!Validate::isColor($ark_txtColor)) {
+                $errors[] = $this->module->l('Text color must be a valid hex color (e.g. #ffffff).');
+            }
+
+            if (!empty($errors)) {
+                // Show all errors at once
+                $output = $this->module->displayError(implode('<br>', $errors));
+            } else {
+                Configuration::updateValue('ARKWEEKPROMO_ENABLED',    $ark_enabled);
+                Configuration::updateValue('ARKWEEKPROMO_BG_COLOR',   $ark_bgColor);
+                Configuration::updateValue('ARKWEEKPROMO_TEXT_COLOR', $ark_txtColor);
+
+                $output = $this->module->displayConfirmation($this->module->l('Settings updated'));
+            }
         }
 
-        if (!Validate::isColor($ark_bgColor)) {
-            $errors[] = $this->l('Background color must be a valid hex color.');
-        }
-
-        if (!Validate::isColor($ark_txtColor)) {
-            $errors[] = $this->l('Text color must be a valid hex color.');
-        }
-
-        if (!empty($errors)) {
-            // Show all errors at once
-            $output = $this->displayError(implode('<br>', $errors));
-        } else {
-            Configuration::updateValue('ARKWEEKPROMO_ENABLED',    $ark_enabled);
-            Configuration::updateValue('ARKWEEKPROMO_TEXT',       $ark_text);
-            Configuration::updateValue('ARKWEEKPROMO_BG_COLOR',   $ark_bgColor);
-            Configuration::updateValue('ARKWEEKPROMO_TEXT_COLOR', $ark_txtColor);
-
-            $output = $this->displayConfirmation(
-                $this->l('Settings updated')
-            );
-        }
+        // display message
+        return $output;
     }
 
     public function displayForm() {
-        // Init Fields form array
+        $languages = Language::getLanguages(true);
+
+        $inputs = [
+            [
+                'type'   => 'switch',
+                'label'  => $this->module->l('Enable Badge'),
+                'name'   => 'ARKWEEKPROMO_ENABLED',
+                'values' => [
+                    ['id' => 'active_on',  'value' => 1, 'label' => $this->module->l('Yes')],
+                    ['id' => 'active_off', 'value' => 0, 'label' => $this->module->l('No')],
+                ],
+            ],
+            [
+                'type'  => 'color',
+                'label' => $this->module->l('Background Color'),
+                'name'  => 'ARKWEEKPROMO_BG_COLOR',
+            ],
+            [
+                'type'  => 'color',
+                'label' => $this->module->l('Text Color'),
+                'name'  => 'ARKWEEKPROMO_TEXT_COLOR',
+            ],
+        ];
+
+        foreach ($languages as $lang) {
+            $inputs[] = [
+                'type'  => 'text',
+                'label' => $this->module->l('Badge Text') . ' — ' . $lang['name'],
+                'name'  => 'ARKWEEKPROMO_TEXT_' . $lang['id_lang'],
+            ];
+        }
+
         $form = [
             'form' => [
                 'legend' => [
-                    'title' => $this->l('Arkon Week Promo Settings'),
+                    'title' => $this->module->l('Arkon Week Promo Settings'),
                 ],
-                'input' => [
-                [
-                    'type'    => 'switch',
-                    'label'   => $this->l('Enable Badge'),
-                    'name'    => 'ARKWEEKPROMO_ENABLED',
-                    'values'  => [
-                        ['id' => 'active_on',  'value' => 1, 'label' => $this->l('Yes')],
-                        ['id' => 'active_off', 'value' => 0, 'label' => $this->l('No')],
-                    ],
-                ],
-                [
-                    'type'  => 'text',
-                    'label' => $this->l('Badge Text'),
-                    'name'  => 'ARKWEEKPROMO_TEXT',
-                ],
-                [
-                    'type'  => 'color',
-                    'label' => $this->l('Background Color'),
-                    'name'  => 'ARKWEEKPROMO_BG_COLOR',
-                ],
-                [
-                    'type'  => 'color',
-                    'label' => $this->l('Text Color'),
-                    'name'  => 'ARKWEEKPROMO_TEXT_COLOR',
-                ],
-            ],
+                'input'  => $inputs,
                 'submit' => [
-                    'title' => $this->l('Save'),
+                    'title' => $this->module->l('Save'),
                     'class' => 'btn btn-default pull-right',
                 ],
             ],
         ];
+        
 
         $helper = new HelperForm();
 
-        // Module, token and currentIndex
-        $helper->table = $this->table;
-        $helper->name_controller = $this->name;
+        $helper->table = $this->module->name;
+        $helper->name_controller = $this->module->name;
         $helper->token = Tools::getAdminTokenLite('AdminModules');
-        $helper->currentIndex = AdminController::$currentIndex . '&' . http_build_query(['configure' => $this->name]);
-        $helper->submit_action = 'submit' . $this->name;
+        $helper->currentIndex = AdminController::$currentIndex . '&' . http_build_query(['configure' => $this->module->name]);
+        $helper->submit_action = 'submit' . $this->module->name;
 
-        // Default language
-        $helper->default_form_language = (int) Configuration::get('PS_LANG_DEFAULT');
-
-        // Load current saved values into the form
         $helper->fields_value['ARKWEEKPROMO_ENABLED']    = Configuration::get('ARKWEEKPROMO_ENABLED');
-        $helper->fields_value['ARKWEEKPROMO_TEXT']       = Configuration::get('ARKWEEKPROMO_TEXT');
         $helper->fields_value['ARKWEEKPROMO_BG_COLOR']   = Configuration::get('ARKWEEKPROMO_BG_COLOR');
         $helper->fields_value['ARKWEEKPROMO_TEXT_COLOR'] = Configuration::get('ARKWEEKPROMO_TEXT_COLOR');
+
+        foreach ($languages as $lang) {
+            $helper->fields_value['ARKWEEKPROMO_TEXT_' . $lang['id_lang']] = Configuration::get('ARKWEEKPROMO_TEXT_' . $lang['id_lang']);
+        }
 
         return $helper->generateForm([$form]);
     }

@@ -6,12 +6,9 @@ use Configuration;
 
 class FrontDisplay{
 
-    private $context;
-    private $module;
-
     public function __construct($context, $module){
         $this->context = $context;
-        $this->module  = $module;
+        $this->module = $module;
     }
 
     public function render($product): string{
@@ -28,11 +25,12 @@ class FrontDisplay{
         }
 
         $this->context->smarty->assign([
-            'badge_text'       => Configuration::get('ARKWEEKPROMO_TEXT'),
+            'badge_text'       => Configuration::get('ARKWEEKPROMO_TEXT_' . $this->context->language->id),
             'badge_bg_color'   => Configuration::get('ARKWEEKPROMO_BG_COLOR'),
             'badge_text_color' => Configuration::get('ARKWEEKPROMO_TEXT_COLOR'),
         ]);
 
-        return $this->display(__FILE__, 'views/templates/hook/badge.tpl');
+        //__FILE__ return the path of the current file, needed to update the path if the file is moved 
+        return $this->module->display($this->module->getLocalPath() . 'arkweekpromo.php', 'views/templates/hook/badge.tpl');
     }
 }
